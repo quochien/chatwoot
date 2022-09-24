@@ -13,7 +13,6 @@
 ActiveRecord::Schema.define(version: 2022_09_20_014549) do
 
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_stat_statements"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
@@ -223,6 +222,18 @@ ActiveRecord::Schema.define(version: 2022_09_20_014549) do
     t.jsonb "additional_attributes", default: {}
     t.index ["hmac_token"], name: "index_channel_api_on_hmac_token", unique: true
     t.index ["identifier"], name: "index_channel_api_on_identifier", unique: true
+  end
+
+  create_table "channel_chat_apis", force: :cascade do |t|
+    t.integer "instance_id", null: false
+    t.string "token", null: false
+    t.integer "account_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "status", default: 0
+    t.index ["account_id"], name: "index_channel_chat_apis_on_account_id", unique: true
+    t.index ["instance_id", "token"], name: "index_channel_chat_apis_on_instance_id_and_token", unique: true
+    t.index ["instance_id"], name: "index_channel_chat_apis_on_instance_id", unique: true
   end
 
   create_table "channel_email", force: :cascade do |t|
@@ -445,7 +456,7 @@ ActiveRecord::Schema.define(version: 2022_09_20_014549) do
     t.text "attribute_description"
     t.jsonb "attribute_values", default: []
     t.index ["account_id"], name: "index_custom_attribute_definitions_on_account_id"
-    t.index ["attribute_key", "attribute_model", "account_id"], name: "attribute_key_model_index", unique: true
+    t.index ["attribute_key", "attribute_model"], name: "attribute_key_model_index", unique: true
   end
 
   create_table "custom_filters", force: :cascade do |t|
@@ -610,6 +621,7 @@ ActiveRecord::Schema.define(version: 2022_09_20_014549) do
     t.string "sender_type"
     t.bigint "sender_id"
     t.jsonb "external_source_ids", default: {}
+    t.jsonb "custom_attributes", default: {}
     t.jsonb "additional_attributes", default: {}
     t.index "((additional_attributes -> 'campaign_id'::text))", name: "index_messages_on_additional_attributes_campaign_id", using: :gin
     t.index ["account_id"], name: "index_messages_on_account_id"
@@ -763,9 +775,11 @@ ActiveRecord::Schema.define(version: 2022_09_20_014549) do
     t.index ["taggable_id", "taggable_type", "context"], name: "index_taggings_on_taggable_id_and_taggable_type_and_context"
     t.index ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy"
     t.index ["taggable_id"], name: "index_taggings_on_taggable_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
     t.index ["taggable_type"], name: "index_taggings_on_taggable_type"
     t.index ["tagger_id", "tagger_type"], name: "index_taggings_on_tagger_id_and_tagger_type"
     t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
+    t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
   end
 
   create_table "tags", id: :serial, force: :cascade do |t|
